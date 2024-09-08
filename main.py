@@ -3,7 +3,7 @@ from time import sleep
 from re import search, IGNORECASE
 from os import environ, scandir
 from subprocess import run
-from os.path import join
+from os.path import join, realpath, dirname
 import logging
 
 log = None
@@ -13,7 +13,9 @@ scripts_path = None
 def setup_logging():
     global log
 
-    logging.basicConfig(filename="log.txt",
+    file_path = dirname(realpath(__file__))
+
+    logging.basicConfig(filename=f"{file_path}/log.txt",
                         filemode='a',
                         format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
                         datefmt='%H:%M:%S',
