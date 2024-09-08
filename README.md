@@ -10,11 +10,15 @@ It is (I am) biased towards an Ubuntu-flavored Linux system with Systemd and Bas
 
 ## Installation
 
-1. Grab the repo as a zip file, extract to the desired machine
+1. Clone or grab the zip of the repo on the desired machine
 2. Rename `example.config.env` to `config.env`
 3. Set the `WEBHOOK_AUTH_TOKEN` in the config to something long and random
-4. Set the `SCRIPT_PATH` to the full path to the script folder
+4. Set the `SCRIPT_PATH` to the full path to the script directory
 5. Run the `install.sh` script to install this as a systemd service on a linux system
+
+## Configuration
+
+When a request with the correct token comes in, the `target` header is mapped to a directory within the `SCRIPT_PATH`, and a `script.sh` within that directory is run. Make sure to `chmod +x script.sh` the file and include the correct shell header (ex. `#!/bin/bash`).
 
 
 ## Security considerations
