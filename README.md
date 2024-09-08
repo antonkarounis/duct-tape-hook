@@ -2,7 +2,7 @@
 # DuctTapeHook
 
 
-This is a utility script that runs a webhook and runs user-defined scripts. The goal was to create a webhook utility that only requires Python3 installed, which is extremely common, and no additional libraries. 
+This is a utility script that exposes a webhook endpoint, and runs user-defined scripts. The goal was to create a webhook utility that only requires Python3 installed, which is extremely common, and no additional libraries. 
 
 
 It is (I am) biased towards an Ubuntu-flavored Linux system with Systemd and Bash. *For example*, it can be used on a cheap VPS as a webhook endpoint to run CI/CD deploy scripts after a Github Action build completes successfully.
@@ -46,7 +46,7 @@ server {
     ...
 
     location /webhook/ {
-        proxy_pass http://localhost:[port]
+        proxy_pass http://localhost:2000;
         include proxy_params;
 
         # github ipv4 ranges from https://api.github.com/meta
@@ -70,6 +70,6 @@ server {
 curl -H "Authorization: Bearer [YOUR_TOKEN_HERE]" \
      -H "Target: [SCRIPT_DIR_NAME]" \
      -X POST \
-     http://localhost:2000
+     https://[YOUR_SERVER_HERE]:2000/webhook/
 ```
 

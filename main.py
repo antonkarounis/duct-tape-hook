@@ -52,25 +52,30 @@ def run_script(target):
 
     if(not found):
         log.warn(f"target [{target}] not found")
-        return
+        return False
 
     full_script_path = join(scripts_path, target, 'script.sh')
     output = run([full_script_path], check=True, capture_output=True).stdout.decode("utf-8")
     log.info(f"target [{target}] output: \n{output}")
+
+    return True
 
 class HTTPHandler(BaseHTTPRequestHandler):
     server_version = ''
     sys_version = ''
 
     def do_POST(self):
-        self.send_response(200)
-        self.send_header('Content-type','text/html')
-        self.end_headers()
+        if(check_auth(self.headers.get("Authorization", "")) and run_script(self.headers.get("Target", ""))):
+            self.send_response(200)
+            self.send_header('Content-type','text/html')
+            self.end_headers()
+            self.wfile.write(bytes("success", "utf8"))
 
-        if(check_auth(self.headers.get("Authorization", ""))):
-            run_script(self.headers.get("Target", ""))
-
-        self.wfile.write(bytes(" ", "utf8"))
+        else:
+            self.send_response(403)
+            self.send_header('Content-type','text/html')
+            self.end_headers()
+            self.wfile.write(bytes("failure", "utf8"))
 
     def log_message(self, format, *args):
         pass
