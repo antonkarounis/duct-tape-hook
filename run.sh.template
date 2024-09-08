@@ -1,8 +1,0 @@
-#!/bin/bash
-
-GITHUB_ZIP_URL=https://github.com/[your-repo-here]/refs/heads/main.zip #replace with your repo
-GITHUB_ACCESS_TOKEN=[your-token-here] #replace with your token
-OUTPUT_PATH=$(readlink -f ./)  # change this to another writeable path if desired
-SCRIPT_PATH=.deploy/deploy.sh # don't put a preceeding slash  / or dot slash ./ here!
-
-python3 ./git-deploy.py $GITHUB_ZIP_URL $GITHUB_ACCESS_TOKEN $OUTPUT_PATH $SCRIPT_PATH

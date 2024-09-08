@@ -1,9 +1,4 @@
-#!/bin/bash
-
-curl -H "Content-Type: application/json" \
-     -H "X-Github-Event: push" \
+curl -H "Authorization: Bearer [YOUR_TOKEN_HERE]" \
+     -H "Target: [SCRIPT_DIR_NAME]" \
      -X POST \
-     -d '{"ref":"refs/heads/main"}' \
-     http://localhost:5000
-
-echo    
+     http://localhost:2000
