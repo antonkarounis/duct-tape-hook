@@ -49,12 +49,7 @@ server {
         proxy_pass http://localhost:2000;
         include proxy_params;
 
-        # github ipv4 ranges from https://api.github.com/meta
-        allow 192.30.252.0/22;
-        allow 185.199.108.0/22;
-        allow 140.82.112.0/20;
-        allow 143.55.64.0/20;
-
+        allow [YOUR_IP];
         deny all;
     }
 
