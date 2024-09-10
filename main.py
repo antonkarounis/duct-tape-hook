@@ -51,31 +51,42 @@ def run_script(target):
             break
 
     if(not found):
-        log.warn(f"target [{target}] not found")
-        return False
+        raise Exception(f"target [{target}] not found")
 
     full_script_path = join(scripts_path, target, 'script.sh')
-    output = run([full_script_path], check=True, capture_output=True).stdout.decode("utf-8")
+    output = run([full_script_path], check=False, capture_output=True).stdout.decode("utf-8")
+
     log.info(f"target [{target}] output: \n{output}")
 
-    return True
+    return output
 
 class HTTPHandler(BaseHTTPRequestHandler):
     server_version = ''
     sys_version = ''
 
     def do_POST(self):
-        if(check_auth(self.headers.get("Authorization", "")) and run_script(self.headers.get("Target", ""))):
-            self.send_response(200)
-            self.send_header('Content-type','text/html')
-            self.end_headers()
-            self.wfile.write(bytes("success", "utf8"))
+        if(check_auth(self.headers.get("Authorization", ""))):
+            try:
+                output = run_script(self.headers.get("Target", ""))
+
+                self.send_response(200)
+                self.send_header('Content-type','text/html')
+                self.end_headers()
+                self.wfile.write(bytes(output + '\n', "utf8"))
+
+            except Exception as e:
+                log.error(f"error running script: {e}")
+
+                self.send_response(500)
+                self.send_header('Content-type','text/html')
+                self.end_headers()
+                self.wfile.write(bytes("bad target\n", "utf8"))
 
         else:
             self.send_response(403)
             self.send_header('Content-type','text/html')
             self.end_headers()
-            self.wfile.write(bytes("failure", "utf8"))
+            self.wfile.write(bytes("Unauthorized\n", "utf8"))
 
     def log_message(self, format, *args):
         pass

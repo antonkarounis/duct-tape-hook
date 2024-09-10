@@ -2,8 +2,11 @@
 # DuctTapeHook
 
 
-This is a utility script that exposes a webhook endpoint, and runs user-defined scripts. The goal was to create a webhook utility that only requires Python3 installed, which is extremely common, and no additional libraries. 
+This is a utility script that exposes a webhook endpoint, and runs user-defined scripts. The goal is to:
 
+- host a simple webhook http endpoint
+- with minimal dependencies - only require Python3 installed, which is extremely common, and no additional libraries
+- easy maintenance - after setup just drop in new scripts to be run in sub-directories
 
 It is (I am) biased towards an Ubuntu-flavored Linux system with Systemd and Bash. *For example*, it can be used on a cheap VPS as a webhook endpoint to run CI/CD deploy scripts after a Github Action build completes successfully.
 
@@ -27,9 +30,11 @@ This script should only be run behind an SSL enabled reverse proxy for minimum s
 
 - Security within this app:
     - Bearer auth token
+    - Removed server header
 - Security strongly suggested external to this app:
     - Only run this through an SSL-enabled reverse proxy
-    - Set up a set of whitelisted remote IPs
+    - _Don't_ host app at `/webhook/`, pick something random
+    - Leverage whitelists for allowed remote IPs or CIDR ranges
 - Potential future improvements:
     - [ ] Client verification using mutual TLS
     - [ ] Message verification using HMAC signatures
@@ -59,7 +64,7 @@ server {
 
 ```
 
-## Sample curl for testing
+## Curl example
 
 ```
 curl -H "Authorization: Bearer [YOUR_TOKEN_HERE]" \
@@ -68,3 +73,26 @@ curl -H "Authorization: Bearer [YOUR_TOKEN_HERE]" \
      https://[YOUR_SERVER_HERE]:2000/webhook/
 ```
 
+## Github Actions example
+
+Need to set the two env variables below, as well as the `WEBHOOK_TOKEN` in Repo Settings -> Secrets and Variables -> Actions -> Repository Secrets,
+
+```
+name: Fire webhook
+
+on: workflow_dispatch
+
+env:
+  WEBHOOK_SERVER: [YOUR SERVER NAME]
+  WEBHOOK_TARGET: [YOUR TARGET DIR]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+        
+    steps:
+      
+    - name: fire webhook
+      run: |
+        curl -H "Authorization: Bearer ${{ secrets.WEBHOOK_TOKEN }}" -H "Target: ${{ env.WEBHOOK_TARGET }}" -X POST ${{ env.WEBHOOK_SERVER }}
+```
