@@ -1,56 +1,54 @@
-
 # DuctTapeHook
 
+A lightweight webhook utility that runs user-defined scripts with minimal dependencies.
 
-This is a utility script that exposes a webhook endpoint, and runs user-defined scripts. The goal is to:
+The goals of DuctTapeHook are simplicity, minimal dependencies (only Python3), and ease of maintenance. It allows you to run user-defined shell scripts via a webhook endpoint, ideal for tasks like CI/CD deployments.
 
-- host a simple webhook http endpoint
-- with minimal dependencies - only require Python3 installed, which is extremely common, and no additional libraries
-- easy maintenance - after setup just drop in new scripts to be run in sub-directories
-
-It is (I am) biased towards an Ubuntu-flavored Linux system with Systemd and Bash. *For example*, it can be used on a cheap VPS as a webhook endpoint to run CI/CD deploy scripts after a Github Action build completes successfully.
-
+*For example*, it can be deployed on a cheap VPS to run CI/CD scripts and called by a Github Action after a build completes successfully.
 
 ## Installation
 
-1. Clone or grab the zip of the repo on the desired machine
+1. Clone the repo to the desired machine
 2. Rename `example.config.env` to `config.env`
-3. Set the `WEBHOOK_AUTH_TOKEN` in the config to something long and random
-4. Set the `SCRIPT_PATH` to the full path to the script directory
+3. Set the `WEBHOOK_AUTH_TOKEN` in the config to something long and random (ex. `openssl rand -hex 32`)
+4. Set the `SCRIPT_PATH` to the _full path_ of the `./scripts/` directory
 5. Run the `install.sh` script to install this as a systemd service on a linux system
 
 ## Configuration
 
-When a request with the correct token comes in, the `target` header is mapped to a directory within the `SCRIPT_PATH`, and a `script.sh` within that directory is run. Make sure to `chmod +x script.sh` the file and include the correct shell header (ex. `#!/bin/bash`).
+Create subdirectories under `./scripts/`, each containing a `script.sh` file that will execute the desired task. Ensure the `script.sh` files are executable (ex. `chmod +x script.sh`) and include the correct shell header (ex. `#!/bin/bash`).
 
+When a request with the correct auth token is received, the `Target` header is used to search for a matching subdirectory within `./scripts/` , sets it as the working directory, and finally runs the `script.sh`. Additional files can be included in the subdirectory next to the `script.sh` file.
 
 ## Security considerations
 
-This script should only be run behind an SSL enabled reverse proxy for minimum security needs, in addition to the required auth token. Additionally one *should* whitelist allowed remote IPs or ranges in their reverse proxy for increased security.
+Running webhooks on the internet has inherent risks, as they need to be openly avaible to be useful. Some security already included within this DuctTapeHook:
+- Bearer auth token
+- Non-sepecific server header
+- Path traversal attacks mitigated by only searching a specific directory
 
-- Security within this app:
-    - Bearer auth token
-    - Removed server header
-- Security strongly suggested external to this app:
-    - Only run this through an SSL-enabled reverse proxy
-    - _Don't_ host app at `/webhook/`, pick something random
-    - Leverage whitelists for allowed remote IPs or CIDR ranges
-- Potential future improvements:
-    - [ ] Client verification using mutual TLS
-    - [ ] Message verification using HMAC signatures
-    - [ ] Timestamp verification of requests
+For secure use, users of DuctTapeHook must take some additional precautions:
+- Only run this through an SSL-enabled reverse proxy (ex. [DigitalOcean guide to configure Nginx with Let's Encrypt](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04))
+- _Don't_ host app at `/webhook/`, as it is commonly scanned for vulnerabilities, pick a more obscure endpoint
+- Run the service as another User and Group with limited privileges 
+- Strongly consider leveraging whitelists for allowed remote IPs or CIDR ranges
 
+Here are some ideas for future enhancements that would further improve security and functionality:
+- [ ] Client verification using mutual TLS
+- [ ] Message verification using HMAC signatures
+- [ ] Timestamp verification of requests
 
-## NGINX example configuration
-This is an exmaple `sites-available` snippet to set up reverse proxying and whitelisting of ips
+## Nginx set up and configuration
+
+For reference, here is a DigitalOcean guide to [install and configure Nginx](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-22-04), and another to [configure Nginx as a reverse proxy](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04).
+
+Below is an example Nginx configuration snippet (ex. `/etc/nginx/sites-available/[your_domain]`) to set up reverse proxying and whitelisting of ips. 
 
 ```
 server {
-
-    ...
     ...
 
-    location /webhook/ {
+    location /[YOUR_WEBHOOK_URL]/ {
         proxy_pass http://localhost:2000;
         include proxy_params;
 
@@ -59,12 +57,13 @@ server {
     }
 
     ...
-    ...
 }
 
 ```
 
 ## Curl example
+
+The command below will test the DuctTapeHook service once it is installed.
 
 ```
 curl -H "Authorization: Bearer [YOUR_TOKEN_HERE]" \
@@ -75,7 +74,7 @@ curl -H "Authorization: Bearer [YOUR_TOKEN_HERE]" \
 
 ## Github Actions example
 
-Need to set the two env variables below, as well as the `WEBHOOK_TOKEN` in Repo Settings -> Secrets and Variables -> Actions -> Repository Secrets,
+For reference the below snippet can be included in a Github Action to send a request to a running DuctTapeHook service. The `WEBHOOK_TOKEN` secret need to be set within the repository's secrets, which can be found in Repo Settings -> Secrets and Variables -> Actions -> Repository Secrets.
 
 ```
 name: Fire webhook
