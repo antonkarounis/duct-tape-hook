@@ -53,9 +53,10 @@ def run_script(target):
     if(not found):
         raise Exception(f"target [{target}] not found")
 
+    script_location = join(scripts_path, target)
     full_script_path = join(scripts_path, target, 'script.sh')
 
-    completed = run([full_script_path], check=False, capture_output=True)
+    completed = run([full_script_path], cwd=script_location, check=False, capture_output=True)
     
     output = completed.stdout.decode("utf-8")
     output += '\n\n'
