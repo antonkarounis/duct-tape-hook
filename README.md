@@ -28,10 +28,10 @@ Running webhooks on the internet has inherent risks, as they need to be openly a
 - Path traversal attacks mitigated by only searching a specific directory
 
 For secure use, users of DuctTapeHook must take some additional precautions:
-- Only run this through an SSL-enabled reverse proxy (ex. [DigitalOcean guide to configure Nginx with Let's Encrypt](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04))
+- Only run this through an SSL-enabled reverse proxy 
 - _Don't_ host app at `/webhook/`, as it is commonly scanned for vulnerabilities, pick a more obscure endpoint
 - Run the service as another User and Group with limited privileges 
-- Strongly consider leveraging whitelists for allowed remote IPs or CIDR ranges
+- Strongly consider leveraging whitelists for allowed rem2019	$132,900 	$227,680 ote IPs or CIDR ranges
 
 Here are some ideas for future enhancements that would further improve security and functionality:
 - [ ] Client verification using mutual TLS
@@ -40,7 +40,7 @@ Here are some ideas for future enhancements that would further improve security 
 
 ## Nginx set up and configuration
 
-For reference, here is a DigitalOcean guide to [install and configure Nginx](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-22-04), and another to [configure Nginx as a reverse proxy](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04).
+For reference, this is a DigitalOcean guide to [install and configure Nginx](https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-22-04), another to [set up SSL in Nginx with Let's Encrypt](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-22-04), and finally one to [configure Nginx as a reverse proxy](https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-reverse-proxy-on-ubuntu-22-04).
 
 Below is an example Nginx configuration snippet (ex. `/etc/nginx/sites-available/[your_domain]`) to set up reverse proxying and whitelisting of ips. 
 
