@@ -9,10 +9,11 @@ The goals of DuctTapeHook are simplicity, minimal dependencies (only Python3), a
 ## Installation
 
 1. Clone the repo to the desired machine
-2. Rename `example.config.env` to `config.env`
-3. Set the `WEBHOOK_AUTH_TOKEN` in the config to something long and random (ex. `openssl rand -hex 32`)
+2. Edit `config.env`
+3. Set the `WEBHOOK_AUTH_TOKEN` to something long and random (ex. `openssl rand -hex 32`)
 4. Set the `SCRIPT_PATH` to the _full path_ of the `./scripts/` directory
 5. Run the `install.sh` script to install this as a systemd service on a linux system
+6. Test with `test.sh`, update the token and you should see "hello world" and the date and time
 
 ## Configuration
 
