@@ -23,7 +23,7 @@ When a request with the correct auth token is received, the `Target` header is u
 
 ## Security considerations
 
-Running webhooks on the internet has inherent risks, as they need to be openly avaible to be useful. Some security already included within this DuctTapeHook:
+Running webhooks on the internet has inherent risks, as they need to be open to the internet to be useful. Some security already included within this DuctTapeHook:
 - Bearer auth token
 - Non-sepecific server header
 - Path traversal attacks mitigated by only searching a specific directory
@@ -32,7 +32,7 @@ For secure use, users of DuctTapeHook must take some additional precautions:
 - Only run this through an SSL-enabled reverse proxy 
 - _Don't_ host app at `/webhook/`, as it is commonly scanned for vulnerabilities, pick a more obscure endpoint
 - Run the service as another User and Group with limited privileges 
-- Strongly consider leveraging whitelists for allowed rem2019	$132,900 	$227,680 ote IPs or CIDR ranges
+- Strongly consider leveraging whitelists for allowed remote IPs or CIDR ranges
 
 Here are some ideas for future enhancements that would further improve security and functionality:
 - [ ] Client verification using mutual TLS
