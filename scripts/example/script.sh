@@ -1,4 +1,4 @@
 #!/bin/bash
 
-echo hello world!
+echo hello $USER_NAME!
 date
