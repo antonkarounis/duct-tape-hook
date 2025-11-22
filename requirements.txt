@@ -1,0 +1,5 @@
+# DuctTapeHook uses only Python 3 standard library
+# No external dependencies required
+
+# Minimum Python version: 3.6+
+# (Required for f-strings, secrets module, and subprocess.run())

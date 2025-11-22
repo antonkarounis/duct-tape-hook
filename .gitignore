@@ -1,3 +1,22 @@
+# Log files
 log.txt
+log.txt.*
+
+# Configuration with secrets (keep .example file)
+config.env
+
+# Script directories (except example)
 scripts/*
 !scripts/example
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
