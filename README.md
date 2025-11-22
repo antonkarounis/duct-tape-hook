@@ -9,11 +9,16 @@ The goals of DuctTapeHook are simplicity, minimal dependencies (only Python3), a
 ## Installation
 
 1. Clone the repo to the desired machine
-2. Edit `config.env`
-3. Set the `WEBHOOK_AUTH_TOKEN` to something long and random (ex. `openssl rand -hex 32`)
-4. Set the `SCRIPT_PATH` to the _full path_ of the `./scripts/` directory
-5. Run the `install.sh` script to install this as a systemd service on a linux system
-6. Test with `test.sh`, update the token and you should see "hello world" and the date and time
+2. Copy `config.env.example` to `config.env`
+3. Edit `config.env`:
+   - Set `WEBHOOK_AUTH_TOKEN` to something long and random (ex. `openssl rand -hex 32`)
+   - Set `SCRIPTS_PATH` to the _full path_ of the `./scripts/` directory
+4. Run the `install.sh` script as root to install this as a systemd service
+   - This will create a dedicated `webhook` user with restricted privileges
+   - The service will run with security hardening enabled
+5. Test with `test.sh` after updating the token - you should see "hello world" and the date
+
+**Note**: The installer creates a system user named `webhook` that runs the service. You can customize the user/group by setting `SERVICE_USER` and `SERVICE_GROUP` environment variables before running `install.sh`.
 
 ## Configuration
 
@@ -21,23 +26,60 @@ Create subdirectories under `./scripts/`, each containing a `script.sh` file tha
 
 When a request with the correct auth token is received, the `Target` header is used to search for a matching subdirectory within `./scripts/` , sets it as the working directory, and finally runs the `script.sh`. Additional files can be included in the subdirectory next to the `script.sh` file.
 
-## Security considerations
+## Security Features
 
-Running webhooks on the internet has inherent risks, as they need to be open to the internet to be useful. Some security already included within this DuctTapeHook:
-- Bearer auth token
-- Non-sepecific server header
-- Path traversal attacks mitigated by only searching a specific directory
+DuctTapeHook includes comprehensive security measures:
 
-For secure use, users of DuctTapeHook must take some additional precautions:
-- Only run this through an SSL-enabled reverse proxy 
-- _Don't_ host app at `/webhook/`, as it is commonly scanned for vulnerabilities, pick a more obscure endpoint
-- Run the service as another User and Group with limited privileges 
-- Strongly consider leveraging whitelists for allowed remote IPs or CIDR ranges
+**Authentication & Authorization:**
+- Bearer token authentication with constant-time comparison (prevents timing attacks)
+- Rate limiting (10 failed auth attempts per IP per minute)
+- Environment variable sanitization with blocklists for dangerous variables
 
-Here are some ideas for future enhancements that would further improve security and functionality:
-- [ ] Client verification using mutual TLS
-- [ ] Message verification using HMAC signatures
-- [ ] Timestamp verification of requests
+**System Security:**
+- Runs as dedicated non-root user (`webhook`) with minimal privileges
+- Systemd hardening: `NoNewPrivileges`, `PrivateTmp`, `ProtectSystem=strict`, etc.
+- Path traversal protection (only searches configured scripts directory)
+- Script execution timeout (5 minutes default)
+- Request size limits (1MB max POST body)
+
+**Operational Security:**
+- Log rotation (10MB max, 5 backups)
+- Restrictive log file permissions (0600)
+- Graceful shutdown handling (SIGTERM/SIGINT)
+- Non-specific server headers (doesn't leak version info)
+- Health check endpoint at `/health` (no auth required)
+
+## Additional Security Recommendations
+
+For production deployments, implement these additional safeguards:
+- **REQUIRED**: Run behind an SSL-enabled reverse proxy (Nginx/Apache)
+- **REQUIRED**: Use IP whitelisting to restrict access to known sources
+- Pick an obscure endpoint path (not `/webhook/` which is commonly scanned)
+- Consider implementing mutual TLS for client verification
+- Use HMAC signatures to verify request authenticity
+- Monitor logs for suspicious activity
+
+## Testing
+
+Run the included test suite:
+
+```bash
+python3 test_main.py
+```
+
+Or with pytest (if installed):
+
+```bash
+python3 -m pytest test_main.py -v
+```
+
+## Health Check
+
+You can verify the service is running without authentication:
+
+```bash
+curl http://localhost:2000/health
+```
 
 ## Nginx set up and configuration
 
